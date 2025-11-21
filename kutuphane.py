@@ -235,3 +235,4 @@ with tab3:
         st.bar_chart(yazar_df.head(10), x="Yazar", y="Adet")
     else:
         st.info("İstatistikleri görmek için lütfen kitap ekleyin.")
+
