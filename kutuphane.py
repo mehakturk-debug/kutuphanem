@@ -4,24 +4,19 @@ import requests
 import io
 from datetime import datetime
 
-# Streamlit Cloud'da Sheets bağlantısı için
-# DİKKAT: Kurulum tamamlanmadan bu kısım sadece deneme verisi döndürür.
+# --- 1. FONKSİYONLAR (Google Sheets Abstraction) ---
+# DİKKAT: Veri kalıcılığı için Sheets bağlantısı kurulmalıdır.
 try:
-    # Gerçek bağlantı kurulduğunda burası kullanılacak
+    # Gerçek bağlantı kurulduğunda burası kullanılacak (Streamlit GSheets Connector)
     conn = st.connection("gsheets", type=st.connections.SQLConnection)
 except:
-    st.warning("Google Sheets bağlantısı kurulamadı. Veriler kalıcı DEĞİLDİR!")
-
-# --- 1. FONKSİYONLAR (Google Sheets Abstraction) ---
-
-# Bu fonksiyonlar, alttaki kurulumu tamamladıktan sonra Sheets ile çalışacaktır.
-# Şu an sadece uyarı verip ilerler.
+    pass # Bağlantı yoksa kod çalışmaya devam eder, ancak veri kalıcı olmaz.
 
 @st.cache_data(ttl=300)
 def veri_getir():
     """Sheets'ten veriyi çeker ve DataFrame olarak döndürür."""
     try:
-        # Gerçek kodda Sheets bağlantısı ile veriyi çeker
+        # Bağlantı varsa veriyi çek
         df = conn.query('SELECT * FROM "Kitaplar"')
         return df
     except NameError:
@@ -31,23 +26,23 @@ def veri_getir():
 
 def kitap_ekle(isbn, ad, yazar, raf, resim_url, durum):
     st.error("⚠️ EKLEME YAPILMADI: Sheets bağlantısını kurduktan sonra bu uyarı kaybolur.")
-    # Burada Sheets'e yeni satır ekleme kodu olacak. (Örn: conn.execute(INSERT...))
+    # BURAYA SHEETS EKLEME KODU GELECEK
     pass
 
 def kitap_guncelle(id, alan, durum):
     st.error("⚠️ GÜNCELLEME YAPILMADI: Sheets bağlantısını kurduktan sonra bu uyarı kaybolur.")
-    # Burada Sheets'teki satırı güncelleme kodu olacak.
+    # BURAYA SHEETS GÜNCELLEME KODU GELECEK
     pass
 
 def kitap_sil(id):
     st.error("⚠️ SİLME YAPILMADI: Sheets bağlantısını kurduktan sonra bu uyarı kaybolur.")
-    # Burada Sheets'teki satırı silme kodu olacak.
+    # BURAYA SHEETS SİLME KODU GELECEK
     pass
     
-# --- Diğer Fonksiyonlar (API ve İstatistik) ---
+# --- Yardımcı Fonksiyonlar ---
 
 def isbn_sorgula(isbn):
-    """Open Library API kullanarak kitap bilgisi çeker (403 hatasını önler)."""
+    """Open Library API kullanarak kitap bilgisi çeker."""
     url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&jscmd=data&format=json"
     try:
         response = requests.get(url, timeout=10)
@@ -175,7 +170,6 @@ with tab2:
         st.info("Listede hiç kitap yok.")
     
     for i, row in df.iterrows():
-        # id sütunu sheets'te yoksa, indexi kullanalım
         kitap_id = row.get('id', i + 1)
         baslik = f"[{'🔴' if row.get('odunc_alan') else '🟢'}] {row['ad']} - {row['yazar']}"
         
@@ -196,7 +190,8 @@ with tab2:
                 st.subheader("İşlemler")
                 with st.form(key=f"f_{kitap_id}"):
                     kisi = st.text_input("Ödünç Alan Kişi", value=row.get('odunc_alan', ''), key=f"txt_{kitap_id}")
-                    drm = st.selectbox("Durum Güncelle", ["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"], index=["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı'].index(row['durum']), key=f"sel_{kitap_id}")
+                    # BURASI HATALIYDI, PARANTEZ KONTROL EDİLDİ:
+                    drm = st.selectbox("Durum Güncelle", ["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"], index=["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"].index(row['durum']), key=f"sel_{kitap_id}")
                     
                     if st.form_submit_button("Güncelle"):
                         kitap_guncelle(kitap_id, kisi, drm)
@@ -235,4 +230,3 @@ with tab3:
         st.bar_chart(yazar_df.head(10), x="Yazar", y="Adet")
     else:
         st.info("İstatistikleri görmek için lütfen kitap ekleyin.")
-
