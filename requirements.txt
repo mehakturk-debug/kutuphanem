@@ -1,5 +1,4 @@
-streamlitstreamlit
+streamlit
 pandas
 requests
 xlsxwriter
-gspread
