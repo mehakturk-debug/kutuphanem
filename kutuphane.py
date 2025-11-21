@@ -11,7 +11,6 @@ st.set_page_config(page_title="Akıllı Kütüphane", page_icon="📚", layout="
 conn = sqlite3.connect('kutuphane.db', check_same_thread=False)
 c = conn.cursor()
 
-# Tablo oluşturma (Eğer yoksa)
 c.execute('''
     CREATE TABLE IF NOT EXISTS kitaplar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,4 +59,51 @@ def kitap_guncelle(id, alan, durum):
     c.execute("UPDATE kitaplar SET odunc_alan=?, odunc_tarih=?, durum=? WHERE id=?", (alan, tarih, durum, id))
     conn.commit()
 
-def kitap_sil
+def kitap_sil(id):
+    c.execute("DELETE FROM kitaplar WHERE id=?", (id,))
+    conn.commit()
+
+def istatistikleri_getir():
+    try:
+        toplam = c.execute("SELECT count(*) FROM kitaplar").fetchone()[0]
+        okunan = c.execute("SELECT count(*) FROM kitaplar WHERE durum='Okundu'").fetchone()[0]
+        odunc = c.execute("SELECT count(*) FROM kitaplar WHERE odunc_alan != ''").fetchone()[0]
+        return toplam, okunan, odunc
+    except:
+        return 0, 0, 0
+
+def isbn_sorgula(isbn):
+    """Open Library API - 403 Hatasız Sürüm"""
+    url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&jscmd=data&format=json"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        key = f"ISBN:{isbn}"
+        
+        if key in data:
+            info = data[key]
+            ad = info.get("title", "Bilinmiyor")
+            authors = info.get("authors", [])
+            yazar = ", ".join([a["name"] for a in authors]) if authors else "Bilinmiyor"
+            cover = info.get("cover", {})
+            resim = cover.get("medium", "") or cover.get("large", "")
+            return ad, yazar, resim
+        else:
+            st.warning("Kitap veritabanında bulunamadı. Manuel giriniz.")
+            return None, None, None
+    except Exception as e:
+        st.error(f"Bağlantı hatası: {e}")
+        return None, None, None
+
+# --- 3. ARAYÜZ ---
+
+with st.sidebar:
+    st.title("📚 Menü")
+    secim = st.radio("Git:", ["Genel Bakış", "Kitap Ekle", "Kitaplığı Yönet"])
+    st.markdown("---")
+    st.info("💡 İpucu: QR kodu için link sonuna `?raf=SalonA1` ekleyebilirsiniz.")
+
+if secim == "Genel Bakış":
+    st.title("📈 Kütüphane İstatistikleri")
+    toplam, okunan,
