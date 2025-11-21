@@ -1,6 +1,5 @@
-streamlit
+streamlitstreamlit
 pandas
 requests
 xlsxwriter
-streamlit-gsheets-connector # Gerekli kütüphane
-gspread # Gerekli kütüphane
+gspread
