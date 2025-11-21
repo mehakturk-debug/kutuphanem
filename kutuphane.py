@@ -222,7 +222,7 @@ with tab2:
                 st.subheader("İşlemler")
                 with st.form(key=f"f_{pandas_index}"):
                     kisi = st.text_input("Ödünç Alan Kişi", value=row.get('odunc_alan', ''), key=f"txt_{pandas_index}")
-                    drm = st.selectbox("Durum Güncelle", ["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"], index=["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı'].index(row['durum']), key=f"sel_{pandas_index}")
+                    drm = st.selectbox("Durum Güncelle", ["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"], index=["Okunacak", "Okunuyor", "Okundu", "Yarım Kaldı"].index(row['durum']), key=f"sel_{pandas_index}")
                     
                     if st.form_submit_button("Güncelle"):
                         kitap_guncelle(pandas_index, kisi, drm)
@@ -260,3 +260,4 @@ with tab3:
         st.bar_chart(yazar_df.head(10), x="Yazar", y="Adet")
     else:
         st.info("İstatistikleri görmek için lütfen kitap ekleyin.")
+
